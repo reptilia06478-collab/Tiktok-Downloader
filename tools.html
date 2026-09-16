@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1e">
+<meta name="description" content="Tiv Tools — Kumpulan tools praktis: Pomodoro, Color Picker, Password Generator, QR Code, Unit Converter, Text Tools.">
+<meta name="author" content="PANN">
+<title>Tiv Tools — Tools Praktis Sehari-hari</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%233b5bff'/><text x='50' y='70' font-size='56' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>T</text></svg>">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* TOOLS-SPECIFIC STYLES */
+  .tool-nav {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 0 16px;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (max-width: 800px) { .tool-nav { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 480px) { .tool-nav { grid-template-columns: repeat(3, 1fr); } }
+
+  .tool-tab {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-family: inherit;
+    color: var(--text);
+  }
+  .tool-tab:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+  .tool-tab.active {
+    background: var(--blue-grad);
+    color: white;
+    border-color: transparent;
+    box-shadow: var(--shadow-glow);
+  }
+  .tool-tab-emoji { font-size: 22px; display: block; margin-bottom: 4px; }
+  .tool-tab-name { font-size: 10px; font-weight: 700; }
+
+  .tool-panel { display: none; }
+  .tool-panel.active { display: block; animation: fadeIn 0.3s ease-out; }
+
+  .tool-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .tool-header h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .tool-header p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* POMODORO */
+  .pomodoro-display {
+    text-align: center;
+    padding: 30px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 16px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .pomodoro-time {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 64px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    color: var(--blue-light);
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+  .pomodoro-mode {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .pomodoro-modes {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .mode-btn {
+    padding: 8px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.25s;
+  }
+  .mode-btn.active {
+    background: var(--blue-grad);
+    color: white;
+    border-color: transparent;
+    box-shadow: var(--shadow-glow);
+  }
+  .pomodoro-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* COLOR PICKER */
+  .color-preview {
+    width: 100%;
+    height: 180px;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--border);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    transition: background 0.3s;
+    cursor: pointer;
+    user-select: none;
+  }
+  .color-inputs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .color-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .color-input-group label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .color-input-group input {
+    padding: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-align: center;
+    outline: none;
+  }
+  .color-input-group input:focus { border-color: var(--blue); }
+  .color-presets {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .color-swatch {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.25s;
+  }
+  .color-swatch:hover {
+    transform: scale(1.1);
+    border-color: white;
+    box-shadow: var(--shadow);
+  }
+
+  /* PASSWORD GENERATOR */
+  .password-output {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    word-break: break-all;
+    margin-bottom: 14px;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 1px;
+    color: var(--blue-light);
+  }
+  .password-options {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .password-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.25s;
+    font-size: 14px;
+    font-weight: 600;
+    user-select: none;
+  }
+  .password-option:hover { border-color: var(--border-strong); }
+  .password-option input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--blue);
+    cursor: pointer;
+  }
+  .password-length {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+  }
+  .password-length label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .password-length input[type="range"] {
+    flex: 1;
+    accent-color: var(--blue);
+  }
+  .password-length-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--blue-light);
+    min-width: 30px;
+    text-align: center;
+  }
+  .password-strength {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--border);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .password-strength-fill {
+    height: 100%;
+    background: var(--red-grad);
+    transition: all 0.3s;
+    border-radius: 4px;
+  }
+
+  /* QR GENERATOR */
+  .qr-output {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    min-height: 260px;
+  }
+  .qr-output img {
+    max-width: 100%;
+    height: auto;
+  }
+  .qr-placeholder {
+    color: #94a3b8;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  /* UNIT CONVERTER */
+  .unit-category {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .category-btn {
+    padding: 8px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.25s;
+  }
+  .category-btn.active {
+    background: var(--blue-grad);
+    color: white;
+    border-color: transparent;
+    box-shadow: var(--shadow-glow);
+  }
+  .unit-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 600px) {
+    .unit-row { grid-template-columns: 1fr; }
+  }
+  .unit-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .unit-input-group input,
+  .unit-input-group select {
+    padding: 12px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    width: 100%;
+  }
+  .unit-input-group input:focus,
+  .unit-input-group select:focus { border-color: var(--blue); }
+  .unit-input-group label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .unit-swap {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--blue-grad);
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-glow);
+    transition: transform 0.25s;
+    justify-self: center;
+  }
+  .unit-swap:hover { transform: rotate(180deg); }
+
+  /* TEXT TOOLS */
+  .text-result {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 600px) { .text-result { grid-template-columns: repeat(2, 1fr); } }
+  .text-result-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    text-align: center;
+  }
+  .text-result-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--blue-light);
+  }
+  .text-result-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+    font-weight: 700;
+  }
+  .text-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 480px) { .text-buttons { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<canvas id="auroraCanvas"></canvas>
+<canvas id="meshCanvas"></canvas>
+<canvas id="particleCanvas"></canvas>
+<canvas id="starCanvas"></canvas>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="nav-logo-icon">⬇</div>
+      <div class="nav-logo-text">Tiv<span class="red">.</span></div>
+    </a>
+    <div class="nav-actions">
+      <button class="nav-icon-btn" id="themeBtn" onclick="toggleTheme()" title="Ganti tema">🌙</button>
+      <button class="nav-icon-btn" id="menuBtn" onclick="openDrawer()" title="Menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<!-- DRAWER MENU -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">Menu</div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-section">
+    <div class="drawer-section-title">Navigasi</div>
+    <a href="index.html" class="drawer-link"><span class="drawer-link-icon">🏠</span><span>Beranda</span></a>
+    <a href="games.html" class="drawer-link"><span class="drawer-link-icon">🎮</span><span>Games</span><span class="drawer-link-badge">4</span></a>
+    <a href="tools.html" class="drawer-link"><span class="drawer-link-icon">🛠️</span><span>Tools</span><span class="drawer-link-badge">6</span></a>
+  </div>
+  <div class="drawer-section">
+    <div class="drawer-section-title">Tools</div>
+    <a href="#" class="drawer-link" onclick="closeDrawer(); switchTool('pomodoro'); return false;"><span class="drawer-link-icon">⏱️</span><span>Pomodoro</span></a>
+    <a href="#" class="drawer-link" onclick="closeDrawer(); switchTool('color'); return false;"><span class="drawer-link-icon">🎨</span><span>Color Picker</span></a>
+    <a href="#" class="drawer-link" onclick="closeDrawer(); switchTool('password'); return false;"><span class="drawer-link-icon">🔐</span><span>Password</span></a>
+    <a href="#" class="drawer-link" onclick="closeDrawer(); switchTool('qr'); return false;"><span class="drawer-link-icon">📱</span><span>QR Code</span></a>
+    <a href="#" class="drawer-link" onclick="closeDrawer(); switchTool('unit'); return false;"><span class="drawer-link-icon">🔢</span><span>Unit Converter</span></a>
+    <a href="#" class="drawer-link" onclick="closeDrawer(); switchTool('text'); return false;"><span class="drawer-link-icon">📝</span><span>Text Tools</span></a>
+  </div>
+</aside>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">🛠️ Tools Praktis</div>
+  <h1>Tools yang <span class="shine">beneran</span> berguna</h1>
+  <p>6 tools praktis buat kerja, belajar, dan produktivitas. Semua gratis, tanpa install, langsung di browser.</p>
+</div>
+
+<!-- TOOL NAV -->
+<div class="tool-nav">
+  <button class="tool-tab active" data-tool="pomodoro" onclick="switchTool('pomodoro')">
+    <span class="tool-tab-emoji">⏱️</span>
+    <span class="tool-tab-name">Pomodoro</span>
+  </button>
+  <button class="tool-tab" data-tool="color" onclick="switchTool('color')">
+    <span class="tool-tab-emoji">🎨</span>
+    <span class="tool-tab-name">Warna</span>
+  </button>
+  <button class="tool-tab" data-tool="password" onclick="switchTool('password')">
+    <span class="tool-tab-emoji">🔐</span>
+    <span class="tool-tab-name">Password</span>
+  </button>
+  <button class="tool-tab" data-tool="qr" onclick="switchTool('qr')">
+    <span class="tool-tab-emoji">📱</span>
+    <span class="tool-tab-name">QR Code</span>
+  </button>
+  <button class="tool-tab" data-tool="unit" onclick="switchTool('unit')">
+    <span class="tool-tab-emoji">🔢</span>
+    <span class="tool-tab-name">Konversi</span>
+  </button>
+  <button class="tool-tab" data-tool="text" onclick="switchTool('text')">
+    <span class="tool-tab-emoji">📝</span>
+    <span class="tool-tab-name">Teks</span>
+  </button>
+</div>
+
+<!-- CONTAINER -->
+<div class="container">
+
+  <!-- TOOL: POMODORO -->
+  <div class="tool-panel active" id="tool-pomodoro">
+    <div class="tool-header">
+      <h2>⏱️ Pomodoro Timer</h2>
+      <p>Metode fokus 25 menit, istirahat 5 menit. Buat kamu yang gampang terdistraksi.</p>
+    </div>
+    <div class="pomodoro-display">
+      <div class="pomodoro-time" id="pomodoroTime">25:00</div>
+      <div class="pomodoro-mode" id="pomodoroMode">Waktu Fokus</div>
+      <div class="pomodoro-modes">
+        <button class="mode-btn active" data-mode="focus" onclick="setPomodoroMode('focus')">🎯 Fokus 25m</button>
+        <button class="mode-btn" data-mode="short" onclick="setPomodoroMode('short')">☕ Pendek 5m</button>
+        <button class="mode-btn" data-mode="long" onclick="setPomodoroMode('long')">🛋️ Panjang 15m</button>
+      </div>
+      <div class="pomodoro-controls">
+        <button class="btn" id="pomodoroStart" onclick="togglePomodoro()">▶️ Mulai</button>
+        <button class="btn btn-secondary" onclick="resetPomodoro()">🔄 Reset</button>
+      </div>
+    </div>
+    <div class="game-stats">
+      <div class="game-stat">
+        <div class="game-stat-value" id="pomodoroSessions">0</div>
+        <div class="game-stat-label">Sesi Selesai</div>
+      </div>
+      <div class="game-stat">
+        <div class="game-stat-value" id="pomodoroTotal">0m</div>
+        <div class="game-stat-label">Total Fokus</div>
+      </div>
+      <div class="game-stat">
+        <div class="game-stat-value" id="pomodoroStreak">0</div>
+        <div class="game-stat-label">Streak</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOL: COLOR PICKER -->
+  <div class="tool-panel" id="tool-color">
+    <div class="tool-header">
+      <h2>🎨 Color Picker</h2>
+      <p>Pilih warna, ambil kode HEX, RGB, HSL. Klik preview buat copy.</p>
+    </div>
+    <div class="card">
+      <div class="color-preview" id="colorPreview" onclick="copyColor()" style="background: #3b5bff;">#3B5BFF</div>
+      <div class="color-inputs">
+        <div class="color-input-group">
+          <label>HEX</label>
+          <input type="text" id="colorHex" value="#3b5bff" maxlength="7" oninput="updateColorFromHex()">
+        </div>
+        <div class="color-input-group">
+          <label>RGB</label>
+          <input type="text" id="colorRgb" value="59,91,255" readonly>
+        </div>
+        <div class="color-input-group">
+          <label>HSL</label>
+          <input type="text" id="colorHsl" value="228,100%,62%" readonly>
+        </div>
+      </div>
+      <input type="color" id="colorPicker" value="#3b5bff" oninput="updateColorFromPicker(this.value)" style="width:100%;height:50px;border:none;border-radius:12px;cursor:pointer;background:transparent;margin-bottom:16px;">
+      <div class="color-presets" id="colorPresets"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn" style="flex:1;" onclick="copyColor()">📋 Copy HEX</button>
+        <button class="btn btn-secondary" onclick="randomColor()">🎲 Acak</button>
+        <button class="btn btn-secondary" onclick="saveColorHistory()">💾 Simpan</button>
+      </div>
+      <div style="margin-top:16px;">
+        <div style="font-size:12px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Riwayat Warna</div>
+        <div class="color-presets" id="colorHistory"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOL: PASSWORD GENERATOR -->
+  <div class="tool-panel" id="tool-password">
+    <div class="tool-header">
+      <h2>🔐 Password Generator</h2>
+      <p>Bikin password kuat, acak, dan aman. Bisa atur panjang & jenis karakter.</p>
+    </div>
+    <div class="card">
+      <div class="password-output" id="passwordOutput">Klik Generate</div>
+      <div class="password-strength">
+        <div class="password-strength-fill" id="passwordStrength" style="width:0%;"></div>
+      </div>
+      <div class="password-length">
+        <label>Panjang</label>
+        <input type="range" id="passwordLength" min="4" max="64" value="16" oninput="updatePasswordLength(this.value)">
+        <div class="password-length-value" id="passwordLengthValue">16</div>
+      </div>
+      <div class="password-options">
+        <label class="password-option">
+          <input type="checkbox" id="passUpper" checked>
+          <span>Huruf Besar (A-Z)</span>
+        </label>
+        <label class="password-option">
+          <input type="checkbox" id="passLower" checked>
+          <span>Huruf Kecil (a-z)</span>
+        </label>
+        <label class="password-option">
+          <input type="checkbox" id="passNumber" checked>
+          <span>Angka (0-9)</span>
+        </label>
+        <label class="password-option">
+          <input type="checkbox" id="passSymbol" checked>
+          <span>Simbol (!@#$%)</span>
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn" style="flex:1;" onclick="generatePassword()">🎲 Generate</button>
+        <button class="btn btn-secondary" onclick="copyPassword()">📋 Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOL: QR CODE -->
+  <div class="tool-panel" id="tool-qr">
+    <div class="tool-header">
+      <h2>📱 QR Code Generator</h2>
+      <p>Bikin QR code dari teks, URL, atau apa aja. Bisa di-download.</p>
+    </div>
+    <div class="card">
+      <div class="input-clean" style="margin-bottom:12px;">
+        <input type="text" id="qrInput" class="input-clean" placeholder="Masukkan teks atau URL..." style="width:100%;padding:12px;border-radius:10px;background:rgba(10,15,30,0.5);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:14px;outline:none;">
+      </div>
+      <div class="qr-output" id="qrOutput">
+        <div class="qr-placeholder">QR code bakal muncul di sini</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn" style="flex:1;" onclick="generateQR()">🎨 Generate QR</button>
+        <button class="btn btn-secondary" onclick="downloadQR()">⬇️ Download</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOL: UNIT CONVERTER -->
+  <div class="tool-panel" id="tool-unit">
+    <div class="tool-header">
+      <h2>🔢 Unit Converter</h2>
+      <p>Konversi satuan panjang, berat, dan suhu dengan cepat.</p>
+    </div>
+    <div class="card">
+      <div class="unit-category" id="unitCategory">
+        <button class="category-btn active" data-cat="length" onclick="setUnitCategory('length')">📏 Panjang</button>
+        <button class="category-btn" data-cat="weight" onclick="setUnitCategory('weight')">⚖️ Berat</button>
+        <button class="category-btn" data-cat="temp" onclick="setUnitCategory('temp')">🌡️ Suhu</button>
+      </div>
+      <div class="unit-row">
+        <div class="unit-input-group">
+          <label>Dari</label>
+          <input type="number" id="unitFromValue" value="1" oninput="convertUnit()">
+          <select id="unitFrom" onchange="convertUnit()"></select>
+        </div>
+        <button class="unit-swap" onclick="swapUnits()">⇄</button>
+        <div class="unit-input-group">
+          <label>Ke</label>
+          <input type="number" id="unitToValue" value="0" readonly style="background:var(--card);color:var(--blue-light);font-weight:700;">
+          <select id="unitTo" onchange="convertUnit()"></select>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:8px;" id="unitFormula"></div>
+    </div>
+  </div>
+
+  <!-- TOOL: TEXT TOOLS -->
+  <div class="tool-panel" id="tool-text">
+    <div class="tool-header">
+      <h2>📝 Text Tools</h2>
+      <p>Hitung kata, karakter, dan ubah format teks dengan cepat.</p>
+    </div>
+    <div class="card">
+      <textarea id="textInput" placeholder="Ketik atau tempel teks di sini..." oninput="analyzeText()" style="width:100%;min-height:140px;padding:14px;background:rgba(10,15,30,0.5);border:1px solid var(--border);border-radius:16px;color:var(--text);font-family:inherit;font-size:14px;line-height:1.7;resize:vertical;outline:none;margin-bottom:16px;"></textarea>
+      <div class="text-result">
+        <div class="text-result-item">
+          <div class="text-result-value" id="textWords">0</div>
+          <div class="text-result-label">Kata</div>
+        </div>
+        <div class="text-result-item">
+          <div class="text-result-value" id="textChars">0</div>
+          <div class="text-result-label">Karakter</div>
+        </div>
+        <div class="text-result-item">
+          <div class="text-result-value" id="textLines">0</div>
+          <div class="text-result-label">Baris</div>
+        </div>
+        <div class="text-result-item">
+          <div class="text-result-value" id="textReading">0m</div>
+          <div class="text-result-label">Baca</div>
+        </div>
+      </div>
+      <div class="text-buttons">
+        <button class="btn btn-secondary" onclick="textUpper()">ABC UPPER</button>
+        <button class="btn btn-secondary" onclick="textLower()">abc lower</button>
+        <button class="btn btn-secondary" onclick="textTitle()">Title Case</button>
+        <button class="btn btn-secondary" onclick="textReverse()">esreveR</button>
+        <button class="btn btn-secondary" onclick="textClean()">Bersihkan</button>
+        <button class="btn btn-secondary" onclick="copyText()">📋 Copy</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="index.html">Beranda</a>
+    <a href="games.html">Games</a>
+    <a href="tools.html">Tools</a>
+  </div>
+  <div class="dev-credit">👨‍💻 Developer: <span>PANN</span></div>
+  <div>© <span id="year">2026</span> Tiv Tools · Dibuat dengan ❤️</div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+<script src="tools.js"></script>
+</body>
+        </html>
